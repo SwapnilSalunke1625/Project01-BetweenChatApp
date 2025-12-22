@@ -37,24 +37,30 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Password must be at least 6 characters and contain 1 uppercase letter, 1 number, and 1 special character")
   }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     throw new ApiError(400, "Please enter a valid email address");
   }
 
-    //   user alredy exist
-    const user= await User.findOne({email})
+  //   user alredy exist
+  const user= await User.findOne({email})
 
-    if(user){
-      throw new ApiError(400, "Email already exist! please login ")
-    }
+  if(user){
+    throw new ApiError(400, "Email already exist! please login ")
+  }
 
+  await User.create({fullName, email, password})
+
+  try {
+    await sendEmail(email);    
+  } catch (error) {
+    throw new ApiError(500, "sneding mail has a problem")
     
-    await User.create({fullName, email, password})
+  }
 
-    await sendEmail(email);
+  
 
-    console.log("user registered successfully!", {
+  console.log("user registered successfully!", {
       fullName,
       email
     })
@@ -86,7 +92,6 @@ const loginUser = asyncHandler(async (req, res) => {
 
   const token = await generateToken(existUser._id, res);
 
-
   return res.status(201).json({
     success:true,
     message:"Login successfully!",
@@ -101,7 +106,9 @@ const loginUser = asyncHandler(async (req, res) => {
 
 });
 
-const logoutUser = asyncHandler(async (req, res) => {});
+const logoutUser = asyncHandler(async (req, res) => {
+  
+});
 
 const updatePassword = asyncHandler(async (req, res) => {
 
